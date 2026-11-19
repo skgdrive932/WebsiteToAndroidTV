@@ -1,0 +1,51 @@
+name: Build Website TV APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      website_url:
+        description: "Website URL (include https://)"
+        required: true
+        default: "https://example.com"
+        type: string
+      app_name:
+        description: "Name shown on the TV"
+        required: true
+        default: "My TV Website"
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate inputs
+        shell: bash
+        run: |
+          URL="${{ inputs.website_url }}"
+          if [[ ! "$URL" =~ ^https?://[^[:space:]]+$ ]]; then
+            echo "Please enter a valid http:// or https:// URL"
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: gradle --no-daemon :app:assembleDebug -PwebsiteUrl="${{ inputs.website_url }}" -PappName="${{ inputs.app_name }}"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-tv-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
