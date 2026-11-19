@@ -5,18 +5,15 @@ on:
   workflow_dispatch:
     inputs:
       website_url:
-        description: "Website URL"
+        description: Website URL
         required: true
-        default: "https://example.com"
+        default: https://example.com
         type: string
       app_name:
-        description: "TV App Name"
+        description: App Name
         required: true
-        default: "My TV Website"
+        default: My TV Website
         type: string
-
-permissions:
-  contents: read
 
 jobs:
   build:
@@ -26,11 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -38,20 +35,16 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.9"
+          gradle-version: '8.9'
 
       - name: Build APK
-        env:
-          WEBSITE_URL: ${{ inputs.website_url }}
-          APP_NAME: ${{ inputs.app_name }}
         run: |
           gradle --no-daemon :app:assembleDebug \
-            -PwebsiteUrl="$WEBSITE_URL" \
-            -PappName="$APP_NAME"
+            -PwebsiteUrl="${{ inputs.website_url }}" \
+            -PappName="${{ inputs.app_name }}"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: website-tv-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
